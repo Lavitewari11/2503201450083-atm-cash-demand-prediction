@@ -1,0 +1,4 @@
+atm_id,date_key,withdrawal_amount_inr,replenished_amount_inr,transaction_count,opening_balance_inr,closing_balance_inr,source_batch_id,record_created_at,qa_issue
+ATM-002,20240101,50248.34,54515.31,42.0,175562.33,179829.29,QA-DUPLICATE-CANDIDATE,2024-01-01 22:15:00,Duplicate ATM-date candidate; reject/deduplicate before SQLite load
+ATM-012,20240112,67408.76,77431.21,53.0,103855.28,113877.73,QA-DUPLICATE-CANDIDATE,2024-01-12 22:15:00,Duplicate ATM-date candidate; reject/deduplicate before SQLite load
+ATM-032,20240101,55945.98,66127.52,52.0,105366.45,115547.99,QA-DUPLICATE-CANDIDATE,2024-01-01 22:15:00,Duplicate ATM-date candidate; reject/deduplicate before SQLite load
