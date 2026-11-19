@@ -1,0 +1,51 @@
+atm_id,atm_name,area_name,site_type,is_active,install_date
+ATM-001,Aarav Digital Point 01,"Sector 18, Noida",Branch,1,2019-06-10
+ATM-002,Ishita Cash Hub 02,"Sector 62, Noida",Residential,1,2022-10-25
+ATM-003,Kabir Metro Kiosk 03,"Indirapuram, Ghaziabad",Market,1,2022-03-24
+ATM-004,Meera Market ATM 04,"Vaishali, Ghaziabad",Office,1,2021-02-28
+ATM-005,Vihaan Banking Point 05,"Raj Nagar, Ghaziabad",Transit,1,2021-02-18
+ATM-006,Anaya Digital Point 06,"Sector 137, Noida",Market,1,2023-03-26
+ATM-007,Reyansh Cash Hub 07,"Crossings Republik, Ghaziabad",Office,1,2019-06-04
+ATM-008,Saanvi Metro Kiosk 08,"Sector 50, Noida",Transit,1,2022-06-09
+ATM-009,Advait Market ATM 09,"Kaushambi, Ghaziabad",Branch,1,2019-12-29
+ATM-010,Diya Banking Point 10,"Sector 15, Noida",Residential,1,2019-06-19
+ATM-011,Arjun Digital Point 11,"Sector 18, Noida",Transit,1,2021-08-05
+ATM-012,Myra Cash Hub 12,"Sector 62, Noida",Branch,1,2023-10-23
+ATM-013,Vivaan Metro Kiosk 13,"Indirapuram, Ghaziabad",Residential,1,2022-08-17
+ATM-014,Aadhya Market ATM 14,"Vaishali, Ghaziabad",Market,1,2022-10-02
+ATM-015,Rohan Banking Point 15,"Raj Nagar, Ghaziabad",Office,1,2022-07-15
+ATM-016,Kiara Digital Point 16,"Sector 137, Noida",Residential,1,2022-11-15
+ATM-017,Ishaan Cash Hub 17,"Crossings Republik, Ghaziabad",Market,1,2021-07-12
+ATM-018,Tara Metro Kiosk 18,"Sector 50, Noida",Office,1,2019-08-19
+ATM-019,Dev Market ATM 19,"Kaushambi, Ghaziabad",Transit,1,2023-02-20
+ATM-020,Naina Banking Point 20,"Sector 15, Noida",Branch,1,2021-03-21
+ATM-021,Aarav Digital Point 21,"Sector 18, Noida",Office,1,2021-06-19
+ATM-022,Ishita Cash Hub 22,"Sector 62, Noida",Transit,1,2020-10-29
+ATM-023,Kabir Metro Kiosk 23,"Indirapuram, Ghaziabad",Branch,1,2019-11-25
+ATM-024,Meera Market ATM 24,"Vaishali, Ghaziabad",Residential,1,2023-07-27
+ATM-025,Vihaan Banking Point 25,"Raj Nagar, Ghaziabad",Market,1,2022-11-07
+ATM-026,Anaya Digital Point 26,"Sector 137, Noida",Branch,1,2022-03-04
+ATM-027,Reyansh Cash Hub 27,"Crossings Republik, Ghaziabad",Residential,1,2020-12-25
+ATM-028,Saanvi Metro Kiosk 28,"Sector 50, Noida",Market,1,2023-01-20
+ATM-029,Advait Market ATM 29,"Kaushambi, Ghaziabad",Office,1,2021-09-08
+ATM-030,Diya Banking Point 30,"Sector 15, Noida",Transit,1,2021-03-09
+ATM-031,Arjun Digital Point 31,"Sector 18, Noida",Market,1,2021-03-21
+ATM-032,Myra Cash Hub 32,"Sector 62, Noida",Office,1,2020-02-14
+ATM-033,Vivaan Metro Kiosk 33,"Indirapuram, Ghaziabad",Transit,1,2019-06-15
+ATM-034,Aadhya Market ATM 34,"Vaishali, Ghaziabad",Branch,1,2021-09-25
+ATM-035,Rohan Banking Point 35,"Raj Nagar, Ghaziabad",Residential,1,2023-05-18
+ATM-036,Kiara Digital Point 36,"Sector 137, Noida",Transit,1,2019-04-25
+ATM-037,Ishaan Cash Hub 37,"Crossings Republik, Ghaziabad",Branch,1,2023-03-25
+ATM-038,Tara Metro Kiosk 38,"Sector 50, Noida",Residential,1,2023-01-29
+ATM-039,Dev Market ATM 39,"Kaushambi, Ghaziabad",Market,1,2020-05-13
+ATM-040,Naina Banking Point 40,"Sector 15, Noida",Office,1,2022-02-10
+ATM-041,Aarav Digital Point 41,"Sector 18, Noida",Residential,1,2019-10-25
+ATM-042,Ishita Cash Hub 42,"Sector 62, Noida",Market,1,2022-09-26
+ATM-043,Kabir Metro Kiosk 43,"Indirapuram, Ghaziabad",Office,1,2022-06-14
+ATM-044,Meera Market ATM 44,"Vaishali, Ghaziabad",Transit,1,2020-09-30
+ATM-045,Vihaan Banking Point 45,"Raj Nagar, Ghaziabad",Branch,1,2019-05-03
+ATM-046,Anaya Digital Point 46,"Sector 137, Noida",Office,1,2023-10-14
+ATM-047,Reyansh Cash Hub 47,"Crossings Republik, Ghaziabad",Transit,1,2021-03-13
+ATM-048,Saanvi Metro Kiosk 48,"Sector 50, Noida",Branch,0,2023-05-27
+ATM-049,Advait Market ATM 49,"Kaushambi, Ghaziabad",Residential,1,2022-05-05
+ATM-050,Diya Banking Point 50,"Sector 15, Noida",Market,0,2022-11-02
