@@ -9,14 +9,22 @@ import plotly.graph_objects as go
 
 from src.data_loader import load_atm_master, load_date_dim, load_daily_fact
 from src.analysis import calculate_total_withdrawal, calculate_average_daily_withdrawal, get_atm_rankings, apply_filters
-from src.ui import render_header, render_kpi_card, init_shared_filters, render_empty_state
+from src.ui import (
+    render_header, render_kpi_card, init_shared_filters,
+    render_empty_state, render_top_nav, render_bottom_nav
+)
 from src.utils import format_inr, format_number
 
 st.set_page_config(page_title="Overview - ATM Analytics", page_icon="📊", layout="wide")
 
-atms_df = load_atm_master()
-calendar_df = load_date_dim()
-facts_df = load_daily_fact()
+try:
+    atms_df = load_atm_master()
+    calendar_df = load_date_dim()
+    facts_df = load_daily_fact()
+except Exception as exc:
+    st.error(f"❌ Database error loading overview data: {exc}")
+    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    st.stop()
 
 filters = init_shared_filters(atms_df, calendar_df)
 filtered_df = apply_filters(
@@ -29,6 +37,8 @@ filtered_df = apply_filters(
 )
 
 render_header("Overview & Operational KPIs", "High-level summary of ATM cash usage and network demand")
+render_top_nav("1. Overview & KPIs")
+
 
 if filtered_df.empty:
     render_empty_state("No withdrawal records found for the selected filter combination.")
@@ -110,3 +120,9 @@ else:
     summary_table["total_withdrawn"] = summary_table["total_withdrawn"].apply(lambda v: format_inr(v))
     summary_table["avg_daily_withdrawal"] = summary_table["avg_daily_withdrawal"].apply(lambda v: format_inr(v))
     st.dataframe(summary_table, use_container_width=True, height=260)
+
+render_bottom_nav(
+    prev_page=("app.py", "Home Hub", "🏠"),
+    next_page=("pages/2_Trend_Analysis.py", "2. Trend Analysis", "📈")
+)
+

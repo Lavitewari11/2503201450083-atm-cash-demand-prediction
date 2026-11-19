@@ -32,3 +32,23 @@ def test_streamlit_apptest_smoke():
         pytest.xfail("app.py is scheduled for implementation in Step 15")
     at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=3).run()
     assert not at.exception
+
+
+def test_all_pages_render_without_exception():
+    streamlit_testing = pytest.importorskip("streamlit.testing.v1")
+    for page_path in PAGES:
+        full_path = ROOT / page_path
+        assert full_path.is_file()
+        at = streamlit_testing.AppTest.from_file(str(full_path), default_timeout=5).run()
+        assert not at.exception, f"Exceptions occurred on {page_path}: {at.exception}"
+
+
+def test_multipage_navigation_smoke():
+    streamlit_testing = pytest.importorskip("streamlit.testing.v1")
+    if not APP.exists():
+        pytest.xfail("app.py is scheduled for implementation in Step 15")
+    for page_path in PAGES:
+        at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=5).run()
+        at.switch_page(page_path).run()
+        assert not at.exception, f"Navigation to {page_path} failed with: {at.exception}"
+

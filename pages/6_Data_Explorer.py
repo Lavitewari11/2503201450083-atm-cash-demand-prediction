@@ -10,18 +10,25 @@ from src.data_loader import (
     load_atm_master, load_date_dim, load_daily_fact,
     load_forecast_fact, get_connection
 )
-from src.ui import render_header, render_empty_state
+from src.ui import render_header, render_empty_state, render_top_nav, render_bottom_nav
 
 st.set_page_config(page_title="Data Explorer - ATM Analytics", page_icon="📁", layout="wide")
 
 render_header("Data Explorer & Export Center", "Inspect, filter, and export synthetic database tables")
+render_top_nav("6. Data Explorer")
 
-con = get_connection()
 tables = ["atm_daily_fact", "atm_master", "date_dim", "atm_forecast_fact", "vw_atm_daily_analysis"]
 selected_table = st.selectbox("Select Database Entity / View:", tables, index=0)
 
-df_raw = pd.read_sql_query(f"SELECT * FROM {selected_table} LIMIT 1000", con)
-con.close()
+try:
+    con = get_connection()
+    df_raw = pd.read_sql_query(f"SELECT * FROM {selected_table} LIMIT 1000", con)
+    con.close()
+except Exception as exc:
+    st.error(f"❌ Database error loading table {selected_table}: {exc}")
+    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    st.stop()
+
 
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -50,3 +57,9 @@ else:
         mime="text/csv",
         type="primary"
     )
+
+render_bottom_nav(
+    prev_page=("pages/5_Forecast_Insights.py", "5. Forecast & Insights", "🔮"),
+    next_page=("pages/7_Data_Quality.py", "7. Data Quality", "🔍")
+)
+

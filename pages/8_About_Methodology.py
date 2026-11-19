@@ -3,11 +3,13 @@ UI-08: About & Methodology Page (BUILD-15, US-14).
 Explains academic provenance, synthetic dataset design, KPI definitions, and limitations.
 """
 import streamlit as st
-from src.ui import render_header
+from src.ui import render_header, render_top_nav, render_bottom_nav
 
 st.set_page_config(page_title="About & Methodology - ATM Analytics", page_icon="ℹ️", layout="wide")
 
 render_header("About & Analytical Methodology", "Project specifications, academic governance, and mathematical definitions")
+render_top_nav("8. About & Methodology")
+
 
 st.markdown("""
 ### 🎓 Academic Project Profile
@@ -42,3 +44,9 @@ st.markdown("""
 2. **Decision Support:** Forecasts are analytical recommendations to assist human planners, not automated cash replenishment triggers.
 3. **Out of Scope:** Live ATM switch connections, core banking integration, physical cash-in-transit routing, and multi-bank production clustering.
 """)
+
+render_bottom_nav(
+    prev_page=("pages/7_Data_Quality.py", "7. Data Quality", "🔍"),
+    next_page=("app.py", "Return to Home Hub", "🏠")
+)
+

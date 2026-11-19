@@ -4,13 +4,20 @@ Displays structured validation report, foreign key checks, null audits, and quar
 """
 import streamlit as st
 from src.validation import run_validation_pipeline
-from src.ui import render_header, render_kpi_card
+from src.ui import render_header, render_kpi_card, render_top_nav, render_bottom_nav
 
 st.set_page_config(page_title="Data Quality - ATM Analytics", page_icon="🔍", layout="wide")
 
 render_header("Data Quality & Governance Audit", "Systematic inspection of relational constraints, completeness, and schema rules")
+render_top_nav("7. Data Quality")
 
-report = run_validation_pipeline()
+try:
+    report = run_validation_pipeline()
+except Exception as exc:
+    st.error(f"❌ Error executing data quality validation pipeline: {exc}")
+    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    st.stop()
+
 
 k1, k2, k3, k4 = st.columns(4)
 with k1:
@@ -38,3 +45,9 @@ with tab_quar:
     st.subheader("Quarantined Duplicate Candidates")
     st.caption("These duplicate records were deliberately isolated into `duplicate_candidates_for_cleaning.csv` during synthetic generation to demonstrate deduplication without corrupting production primary keys.")
     st.dataframe(report["quarantined_duplicates_df"], use_container_width=True)
+
+render_bottom_nav(
+    prev_page=("pages/6_Data_Explorer.py", "6. Data Explorer", "📁"),
+    next_page=("pages/8_About_Methodology.py", "8. About & Methodology", "ℹ️")
+)
+

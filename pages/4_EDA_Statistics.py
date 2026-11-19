@@ -7,14 +7,22 @@ import plotly.express as px
 
 from src.data_loader import load_atm_master, load_date_dim, load_daily_fact
 from src.analysis import apply_filters, descriptive_statistics
-from src.ui import render_header, init_shared_filters, render_empty_state
+from src.ui import (
+    render_header, init_shared_filters, render_empty_state,
+    render_top_nav, render_bottom_nav
+)
 from src.utils import format_inr
 
 st.set_page_config(page_title="EDA & Statistics - ATM Analytics", page_icon="🔬", layout="wide")
 
-atms_df = load_atm_master()
-calendar_df = load_date_dim()
-facts_df = load_daily_fact()
+try:
+    atms_df = load_atm_master()
+    calendar_df = load_date_dim()
+    facts_df = load_daily_fact()
+except Exception as exc:
+    st.error(f"❌ Database error loading statistics data: {exc}")
+    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    st.stop()
 
 filters = init_shared_filters(atms_df, calendar_df)
 filtered_df = apply_filters(
@@ -27,6 +35,8 @@ filtered_df = apply_filters(
 )
 
 render_header("Exploratory Data Analysis & Statistics", "Statistical distributions, variability, and correlations")
+render_top_nav("4. EDA & Statistics")
+
 
 if filtered_df.empty:
     render_empty_state("No data available for statistical exploration with current filters.")
@@ -91,3 +101,9 @@ else:
         )
         fig_corr.update_layout(height=360, margin=dict(l=20, r=20, t=40, b=20))
         st.plotly_chart(fig_corr, use_container_width=True)
+
+render_bottom_nav(
+    prev_page=("pages/3_ATM_Comparison.py", "3. ATM Comparison", "🏆"),
+    next_page=("pages/5_Forecast_Insights.py", "5. Forecast & Insights", "🔮")
+)
+

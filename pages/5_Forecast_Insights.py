@@ -11,14 +11,22 @@ from src.data_loader import load_atm_master, load_date_dim, load_daily_fact, loa
 from src.analysis import apply_filters, detect_demand_anomalies, compare_replenishment_vs_withdrawal
 from src.forecasting import evaluate_chronological_holdout, predict_single_atm_demand, predict_network_demand
 from src.insights import generate_replenishment_insight
-from src.ui import render_header, render_kpi_card, render_insight_box, init_shared_filters, render_empty_state
+from src.ui import (
+    render_header, render_kpi_card, render_insight_box,
+    init_shared_filters, render_empty_state, render_top_nav, render_bottom_nav
+)
 from src.utils import format_inr
 
 st.set_page_config(page_title="Forecast & Insights - ATM Analytics", page_icon="🔮", layout="wide")
 
-atms_df = load_atm_master()
-calendar_df = load_date_dim()
-facts_df = load_daily_fact()
+try:
+    atms_df = load_atm_master()
+    calendar_df = load_date_dim()
+    facts_df = load_daily_fact()
+except Exception as exc:
+    st.error(f"❌ Database error loading forecast data: {exc}")
+    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    st.stop()
 
 filters = init_shared_filters(atms_df, calendar_df)
 filtered_df = apply_filters(
@@ -31,6 +39,8 @@ filtered_df = apply_filters(
 )
 
 render_header("Forecasting & Operational Insights", "Predictive cash demand estimates and model holdout evaluations")
+render_top_nav("5. Forecast & Insights")
+
 
 tab_single, tab_net, tab_eval, tab_anom, tab_replen = st.tabs([
     "🔮 Single ATM Forecast (OQ-06)",
@@ -124,3 +134,9 @@ with tab_replen:
         render_kpi_card("Total Cash Withdrawn", format_inr(rep_comp["total_withdrawn"], compact=True), "Customer withdrawals")
     with r3:
         render_kpi_card("Net Cash Flow", format_inr(rep_comp["net_difference"], compact=True), f"Replenishment Ratio: {rep_comp['replenishment_ratio_pct']:.1f}%")
+
+render_bottom_nav(
+    prev_page=("pages/4_EDA_Statistics.py", "4. EDA & Statistics", "🔬"),
+    next_page=("pages/6_Data_Explorer.py", "6. Data Explorer", "📁")
+)
+

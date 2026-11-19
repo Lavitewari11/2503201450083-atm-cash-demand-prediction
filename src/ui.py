@@ -91,6 +91,52 @@ def render_empty_state(message: str = "No records match the current filter selec
     st.warning(f"ℹ️ {message}")
 
 
+def safe_page_link(
+    page: str,
+    label: str,
+    icon: Optional[str] = None,
+    help: Optional[str] = None
+) -> None:
+    """Safely render st.page_link with defensive fallback for isolated testing contexts."""
+    try:
+        st.page_link(page, label=label, icon=icon, help=help)
+    except Exception:
+        # Fallback when running page in isolated test mode without multi-page router context
+        route = page.replace("pages/", "").replace(".py", "")
+        if route == "app":
+            route = "Home Hub"
+        st.caption(f"{icon or '🔗'} **{label}** (`{route}`)")
+
+
+def render_top_nav(current_page: str = "") -> None:
+    """Render top breadcrumb and navigation back to the homepage hub and between modules."""
+    col_nav1, col_nav2 = st.columns([2.5, 7.5])
+    with col_nav1:
+        safe_page_link("app.py", label="Home Hub", icon="🏠", help="Return to Main Analytics Hub")
+    with col_nav2:
+        if current_page:
+            st.caption(f"📍 Location: **Home Hub** › **{current_page}**")
+
+
+def render_bottom_nav(
+    prev_page: Optional[tuple[str, str, str]] = None,
+    next_page: Optional[tuple[str, str, str]] = None
+) -> None:
+    """Render bottom navigation controls between pages and back to the homepage."""
+    st.markdown("---")
+    c_prev, c_home, c_next = st.columns([4, 2, 4])
+    with c_prev:
+        if prev_page:
+            safe_page_link(prev_page[0], label=f"⬅️ {prev_page[1]}", icon=prev_page[2])
+    with c_home:
+        safe_page_link("app.py", label="Home Hub", icon="🏠")
+    with c_next:
+        if next_page:
+            safe_page_link(next_page[0], label=f"{next_page[1]} ➡️", icon=next_page[2])
+
+
+
+
 def init_shared_filters(
     atms_df: Optional[pd.DataFrame] = None,
     calendar_df: Optional[pd.DataFrame] = None

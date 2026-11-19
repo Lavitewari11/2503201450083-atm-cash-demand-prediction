@@ -60,22 +60,35 @@ st.markdown("Select a module from the **left sidebar** navigation or click below
 p_col1, p_col2 = st.columns(2)
 
 with p_col1:
-    st.markdown("""
-    #### 📊 Operational Analytics
-    - **[1. Overview & KPIs](pages/1_Overview.py):** Network-wide total withdrawals, 7-day moving average trend, and top ATM rankings.
-    - **[2. Trend Analysis](pages/2_Trend_Analysis.py):** Day-of-week patterns, monthly trend curve, and seasonal shifts (Summer, Monsoon, Winter).
-    - **[3. ATM Comparison](pages/3_ATM_Comparison.py):** Benchmark and rank ATMs by historical volume, area, and site type.
-    - **[4. EDA & Statistics](pages/4_EDA_Statistics.py):** Demand distributions, histograms, box plots, and correlation heatmaps.
-    """)
+    st.markdown("#### 📊 Operational Analytics")
+    with st.container(border=True):
+        st.page_link("pages/1_Overview.py", label="1. Overview & KPIs", icon="📊")
+        st.caption("Network-wide total withdrawals, 7-day moving average trend, and top ATM rankings.")
+    with st.container(border=True):
+        st.page_link("pages/2_Trend_Analysis.py", label="2. Trend Analysis", icon="📈")
+        st.caption("Day-of-week patterns, monthly trend curve, and seasonal shifts (Summer, Monsoon, Winter).")
+    with st.container(border=True):
+        st.page_link("pages/3_ATM_Comparison.py", label="3. ATM Comparison", icon="🏆")
+        st.caption("Benchmark and rank ATMs by historical volume, area, and site type.")
+    with st.container(border=True):
+        st.page_link("pages/4_EDA_Statistics.py", label="4. EDA & Statistics", icon="🔬")
+        st.caption("Demand distributions, histograms, box plots, and correlation heatmaps.")
 
 with p_col2:
-    st.markdown("""
-    #### 🔮 Predictive & Governance Modules
-    - **[5. Forecast & Insights](pages/5_Forecast_Insights.py):** Single ATM forecasts (OQ-06), network demand (OQ-10), holdout evaluation (OQ-07), and anomaly detection (OQ-08).
-    - **[6. Data Explorer](pages/6_Data_Explorer.py):** Filter, search, inspect, and export clean database records to CSV.
-    - **[7. Data Quality](pages/7_Data_Quality.py):** Automated audits for foreign keys, missing values, duplicates, and range rules (BR-11).
-    - **[8. About & Methodology](pages/8_About_Methodology.py):** Academic context, holdout design, mathematical metrics, and limitations.
-    """)
+    st.markdown("#### 🔮 Predictive & Governance Modules")
+    with st.container(border=True):
+        st.page_link("pages/5_Forecast_Insights.py", label="5. Forecast & Insights", icon="🔮")
+        st.caption("Single ATM forecasts (OQ-06), network demand (OQ-10), holdout evaluation (OQ-07), and anomaly detection (OQ-08).")
+    with st.container(border=True):
+        st.page_link("pages/6_Data_Explorer.py", label="6. Data Explorer", icon="📁")
+        st.caption("Filter, search, inspect, and export clean database records to CSV.")
+    with st.container(border=True):
+        st.page_link("pages/7_Data_Quality.py", label="7. Data Quality", icon="🔍")
+        st.caption("Automated audits for foreign keys, missing values, duplicates, and range rules (BR-11).")
+    with st.container(border=True):
+        st.page_link("pages/8_About_Methodology.py", label="8. About & Methodology", icon="ℹ️")
+        st.caption("Academic context, holdout design, mathematical metrics, and limitations.")
+
 
 st.markdown("---")
 st.caption("Developed by **Lavi Tewari** (Roll No: 2503201450083) | Guided by **Kalpana Dwivedi** | MCA Data Analytics, ABES")
