@@ -4,11 +4,18 @@ Streamlit Multipage Hub (BUILD-07, BUILD-08, Step 12 UI Framework).
 Student: Lavi Tewari | Roll No: 2503201450083 | MCA Data Analytics, ABES
 Mentor: Kalpana Dwivedi
 """
+import sys
+from pathlib import Path
 from datetime import date
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+
+# Ensure project root is prioritized in sys.path for Cloud environments
+_ROOT_DIR = Path(__file__).resolve().parent
+if str(_ROOT_DIR) not in sys.path or sys.path[0] != str(_ROOT_DIR):
+    sys.path.insert(0, str(_ROOT_DIR))
 
 from src.data_loader import load_atm_master, load_date_dim, load_daily_fact
 from src.analysis import (
@@ -19,6 +26,7 @@ from src.ui import (
     render_header, render_kpi_card, init_shared_filters,
     safe_page_link, ensure_pages_registered, apply_chart_theme
 )
+
 from src.utils import format_inr, format_number
 
 st.set_page_config(
