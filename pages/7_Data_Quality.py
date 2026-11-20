@@ -4,9 +4,12 @@ Displays structured validation report, foreign key checks, null audits, and quar
 """
 import streamlit as st
 from src.validation import run_validation_pipeline
-from src.ui import render_header, render_kpi_card, render_top_nav, render_bottom_nav
+from src.ui import render_header, render_kpi_card, render_top_nav, render_bottom_nav, safe_page_link
 
-st.set_page_config(page_title="Data Quality - ATM Analytics", page_icon="🔍", layout="wide")
+try:
+    st.set_page_config(page_title="Data Quality - ATM Analytics", page_icon="🔍", layout="wide")
+except Exception:
+    pass
 
 render_header("Data Quality & Governance Audit", "Systematic inspection of relational constraints, completeness, and schema rules")
 render_top_nav("7. Data Quality")
@@ -15,7 +18,7 @@ try:
     report = run_validation_pipeline()
 except Exception as exc:
     st.error(f"❌ Error executing data quality validation pipeline: {exc}")
-    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    safe_page_link("app.py", label="Return to Home Hub", icon="🏠")
     st.stop()
 
 

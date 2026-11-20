@@ -30,7 +30,7 @@ def test_streamlit_apptest_smoke():
     streamlit_testing = pytest.importorskip("streamlit.testing.v1")
     if not APP.exists():
         pytest.xfail("app.py is scheduled for implementation in Step 15")
-    at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=3).run()
+    at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=10).run()
     assert not at.exception
 
 

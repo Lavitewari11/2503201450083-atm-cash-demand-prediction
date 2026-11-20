@@ -13,11 +13,15 @@ from src.forecasting import evaluate_chronological_holdout, predict_single_atm_d
 from src.insights import generate_replenishment_insight
 from src.ui import (
     render_header, render_kpi_card, render_insight_box,
-    init_shared_filters, render_empty_state, render_top_nav, render_bottom_nav
+    init_shared_filters, render_empty_state, render_top_nav, render_bottom_nav,
+    safe_page_link, apply_chart_theme
 )
 from src.utils import format_inr
 
-st.set_page_config(page_title="Forecast & Insights - ATM Analytics", page_icon="🔮", layout="wide")
+try:
+    st.set_page_config(page_title="Forecast & Insights - ATM Analytics", page_icon="🔮", layout="wide")
+except Exception:
+    pass
 
 try:
     atms_df = load_atm_master()
@@ -25,8 +29,9 @@ try:
     facts_df = load_daily_fact()
 except Exception as exc:
     st.error(f"❌ Database error loading forecast data: {exc}")
-    st.page_link("app.py", label="Return to Home Hub", icon="🏠")
+    safe_page_link("app.py", label="Return to Home Hub", icon="🏠")
     st.stop()
+
 
 filters = init_shared_filters(atms_df, calendar_df)
 filtered_df = apply_filters(
@@ -102,13 +107,36 @@ with tab_eval:
         if eval_res["kpi_05_pass"]:
             st.success("✅ **KPI-05 Verified:** Machine Learning Model MAE is lower than Seasonal Naive Baseline MAE (`MAE(model) < MAE(baseline)`).")
 
-        st.subheader("Actual vs Predicted Withdrawals on Unseen Holdout Set")
+        st.markdown("### 🎯 Actual vs Predicted Withdrawals on Unseen Holdout Set")
         preds = eval_res["test_predictions"].sort_values("date_value")
         fig_eval = go.Figure()
-        fig_eval.add_trace(go.Scatter(x=list(range(len(preds))), y=preds["withdrawal_amount_inr"], name="Actual", line=dict(color="#0F172A", width=2)))
-        fig_eval.add_trace(go.Scatter(x=list(range(len(preds))), y=preds["predicted_ml_rf"], name="Random Forest ML", line=dict(color="#0F766E", width=2, dash="dash")))
-        fig_eval.add_trace(go.Scatter(x=list(range(len(preds))), y=preds["predicted_seasonal_naive"], name="Seasonal Naive Baseline", line=dict(color="#DC2626", width=1.5, dash="dot")))
-        fig_eval.update_layout(height=340, margin=dict(l=20, r=20, t=20, b=20), xaxis_title="Holdout Test Observation Index", yaxis_title="Withdrawal (₹)")
+        fig_eval.add_trace(go.Scatter(
+            x=list(range(len(preds))),
+            y=preds["withdrawal_amount_inr"],
+            name="Actual Customer Demand",
+            line=dict(color="#0F172A", width=2.5),
+            hovertemplate="<b>Actual:</b> ₹%{y:,.0f}<extra></extra>"
+        ))
+        fig_eval.add_trace(go.Scatter(
+            x=list(range(len(preds))),
+            y=preds["predicted_ml_rf"],
+            name="Random Forest ML Model",
+            line=dict(color="#0F766E", width=3, dash="dash"),
+            hovertemplate="<b>ML Predicted:</b> ₹%{y:,.0f}<extra></extra>"
+        ))
+        fig_eval.add_trace(go.Scatter(
+            x=list(range(len(preds))),
+            y=preds["predicted_seasonal_naive"],
+            name="Seasonal Naive Baseline",
+            line=dict(color="#DC2626", width=2, dash="dot"),
+            hovertemplate="<b>Naive Baseline:</b> ₹%{y:,.0f}<extra></extra>"
+        ))
+        apply_chart_theme(
+            fig_eval,
+            height=430,
+            xaxis_title="Chronological Holdout Observation Sequence (Zero Data Leakage)",
+            yaxis_title="Cash Withdrawal (₹ INR)"
+        )
         st.plotly_chart(fig_eval, use_container_width=True)
 
 # 4. Demand Anomalies

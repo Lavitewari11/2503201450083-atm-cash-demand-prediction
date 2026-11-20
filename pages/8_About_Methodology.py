@@ -5,7 +5,10 @@ Explains academic provenance, synthetic dataset design, KPI definitions, and lim
 import streamlit as st
 from src.ui import render_header, render_top_nav, render_bottom_nav
 
-st.set_page_config(page_title="About & Methodology - ATM Analytics", page_icon="ℹ️", layout="wide")
+try:
+    st.set_page_config(page_title="About & Methodology - ATM Analytics", page_icon="ℹ️", layout="wide")
+except Exception:
+    pass
 
 render_header("About & Analytical Methodology", "Project specifications, academic governance, and mathematical definitions")
 render_top_nav("8. About & Methodology")
@@ -20,6 +23,16 @@ st.markdown("""
 - **Institution:** ABES Engineering College
 - **Faculty Mentor:** Kalpana Dwivedi
 - **Release Version:** 1.0 (Step 15 Build)
+
+---
+### 🛠️ Technology Stack & Architecture
+- **Language & Runtime:** Python 3.10+
+- **Interactive UI Framework:** Streamlit 1.57 (Multi-Page Navigation Architecture)
+- **Relational Data Warehouse:** SQLite 3 (ACID-compliant local relational store with enforced foreign keys)
+- **Data Engineering & Manipulation:** Pandas 2.2+, NumPy
+- **Interactive Visualizations:** Plotly Express & Plotly Graph Objects (Interactive HTML5 charts)
+- **Statistical & ML Modeling:** Scikit-Learn (Random Forest Regressor, Seasonal Naive Baseline)
+- **Testing & QA Suite:** Pytest (58 automated unit and end-to-end integration tests)
 
 ---
 ### 🏛️ Relational Data Grain
