@@ -14,10 +14,46 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from src.utils import date_to_key, key_to_date
 
 
-def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
+def get_atm_encoding_map(atms_df: Optional[pd.DataFrame] = None) -> Dict[str, int]:
+    """
+    Derives deterministic, consistent integer codes from ATM master.
+    Guarantees identical categorical encoding across training, testing, and single-row inference.
+    """
+    if atms_df is not None and not atms_df.empty and "atm_id" in atms_df.columns:
+        unique_ids = sorted(atms_df["atm_id"].dropna().unique().tolist())
+    else:
+        try:
+            from src.data_loader import load_atm_master
+            master = load_atm_master()
+            unique_ids = sorted(master["atm_id"].dropna().unique().tolist())
+        except Exception:
+            unique_ids = [f"ATM-{i:03d}" for i in range(1, 51)]
+    return {a_id: idx for idx, a_id in enumerate(unique_ids)}
+
+
+def get_season_for_month(month: int) -> str:
+    """
+    Consistent seasonal classification matching date_dim and generate_data.py.
+    Months 3-6: Summer, 7-9: Monsoon, 11, 12, 1, 2: Winter, Month 10: Other.
+    """
+    if month in (3, 4, 5, 6):
+        return "Summer"
+    if month in (7, 8, 9):
+        return "Monsoon"
+    if month in (11, 12, 1, 2):
+        return "Winter"
+    return "Other"
+
+
+def prepare_features(
+    df: pd.DataFrame,
+    atm_map: Optional[Dict[str, int]] = None,
+    atm_means: Optional[Dict[str, float]] = None,
+    global_mean: Optional[float] = None
+) -> Tuple[pd.DataFrame, pd.Series]:
     """
     Extract calendar and historical features for demand forecasting.
-    Guarantees no future leakage.
+    Guarantees consistent categorical encoding without future leakage.
     """
     df_feat = df.copy()
 
@@ -32,12 +68,25 @@ def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
     # Encode season
     season_map = {"Summer": 1, "Monsoon": 2, "Winter": 3, "Other": 0}
-    df_feat["season_code"] = df_feat["season_name"].map(season_map).fillna(0).astype(int)
-    df_feat["holiday_code"] = df_feat["is_holiday"].fillna(0).astype(int)
+    if "season_name" in df_feat.columns:
+        df_feat["season_code"] = df_feat["season_name"].map(season_map).fillna(0).astype(int)
+    else:
+        df_feat["season_code"] = 0
 
-    # ATM encoding (frequency / mean target encoding or one-hot / categorical codes)
+    df_feat["holiday_code"] = df_feat["is_holiday"].fillna(0).astype(int) if "is_holiday" in df_feat.columns else 0
+
+    # Deterministic ATM encoding (identical across train and single-row inference)
     if "atm_id" in df_feat.columns:
-        df_feat["atm_code"] = df_feat["atm_id"].astype("category").cat.codes
+        mapping = atm_map if atm_map is not None else get_atm_encoding_map()
+        df_feat["atm_code"] = df_feat["atm_id"].map(mapping).fillna(-1).astype(int)
+        if atm_means is not None:
+            g_mean = global_mean if global_mean is not None else 45000.0
+            df_feat["atm_hist_mean"] = df_feat["atm_id"].map(atm_means).fillna(g_mean)
+        else:
+            df_feat["atm_hist_mean"] = 45000.0
+    else:
+        df_feat["atm_code"] = -1
+        df_feat["atm_hist_mean"] = 45000.0
 
     # Site type encoding
     site_map = {"Branch": 1, "Market": 2, "Transit": 3, "Residential": 4, "Office": 5}
@@ -47,9 +96,12 @@ def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
         df_feat["site_code"] = 0
 
     feature_cols = [
-        "atm_code", "site_code", "day_of_week_num", "month_num",
+        "atm_hist_mean", "atm_code", "site_code", "day_of_week_num", "month_num",
         "day_of_month", "season_code", "is_weekend", "is_month_end", "holiday_code"
     ]
+    for col in feature_cols:
+        if col not in df_feat.columns:
+            df_feat[col] = 0
 
     X = df_feat[feature_cols].copy()
     y = df_feat["withdrawal_amount_inr"].copy() if "withdrawal_amount_inr" in df_feat.columns else pd.Series(dtype=float)
@@ -57,14 +109,20 @@ def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
 
 class SeasonalNaiveBaseline:
-    """Baseline Model: Predicts historical ATM-specific weekday average."""
+    """
+    Rule-Based Baseline: Predicts historical ATM-specific weekday average.
+    Falls back to the specific ATM's overall average if no matching weekday observation exists,
+    before falling back to the network-wide global mean.
+    """
 
     def __init__(self):
         self.lookup: Dict[Tuple[str, int], float] = {}
+        self.atm_means: Dict[str, float] = {}
         self.global_mean: float = 0.0
 
     def fit(self, train_df: pd.DataFrame) -> "SeasonalNaiveBaseline":
         self.global_mean = float(train_df["withdrawal_amount_inr"].mean())
+        self.atm_means = train_df.groupby("atm_id")["withdrawal_amount_inr"].mean().to_dict()
         grouped = train_df.groupby(["atm_id", "day_of_week_num"])["withdrawal_amount_inr"].mean()
         self.lookup = grouped.to_dict()
         return self
@@ -73,13 +131,29 @@ class SeasonalNaiveBaseline:
         preds = []
         for _, row in test_df.iterrows():
             key = (row["atm_id"], int(row["day_of_week_num"]))
-            p = self.lookup.get(key, self.global_mean)
+            if key in self.lookup:
+                p = self.lookup[key]
+            elif row["atm_id"] in self.atm_means:
+                p = self.atm_means[row["atm_id"]]
+            else:
+                p = self.global_mean
             preds.append(max(0.0, float(p)))
         return np.array(preds)
 
 
 class MovingAverageBaseline:
-    """Baseline Model: Predicts recent overall historical mean for ATM."""
+    """
+    Statistical Baseline Model: Predicts historical mean demand for each ATM (BR-07, OQ-07).
+
+    Methodology & Nomenclature Note:
+    Named MovingAverageBaseline for consistency with project specification.
+    Because the underlying benchmark dataset contains periodic observations
+    (5 discrete observations per ATM across 2 years with multi-month gaps),
+    calculating a continuous 7-day rolling calendar moving average per ATM is not
+    mathematically possible without dense daily observations.
+    Therefore, this baseline computes the historical average demand per ATM across
+    available training observations, falling back to the network-wide mean for unseen machines.
+    """
 
     def __init__(self, window: int = 7):
         self.window = window
@@ -111,15 +185,21 @@ class CashDemandMLForecaster:
             random_state=random_state
         )
         self.feature_names: List[str] = []
+        self.atm_means: Dict[str, float] = {}
+        self.global_mean: float = 45000.0
 
     def fit(self, train_df: pd.DataFrame) -> "CashDemandMLForecaster":
-        X, y = prepare_features(train_df)
+        if "withdrawal_amount_inr" in train_df.columns:
+            self.global_mean = float(train_df["withdrawal_amount_inr"].mean())
+        if "atm_id" in train_df.columns and "withdrawal_amount_inr" in train_df.columns:
+            self.atm_means = train_df.groupby("atm_id")["withdrawal_amount_inr"].mean().to_dict()
+        X, y = prepare_features(train_df, atm_means=self.atm_means, global_mean=self.global_mean)
         self.feature_names = list(X.columns)
         self.model.fit(X, y)
         return self
 
     def predict(self, test_df: pd.DataFrame) -> np.ndarray:
-        X, _ = prepare_features(test_df)
+        X, _ = prepare_features(test_df, atm_means=self.atm_means, global_mean=self.global_mean)
         preds = self.model.predict(X)
         return np.clip(preds, a_min=0.0, a_max=None)
 
@@ -169,8 +249,8 @@ def evaluate_forecast_models(
 
     # 4. Linear Ridge Model
     ridge = Ridge(alpha=1.0)
-    X_train, y_train = prepare_features(train_df)
-    X_test, _ = prepare_features(test_df)
+    X_train, y_train = prepare_features(train_df, atm_means=ml_model.atm_means, global_mean=ml_model.global_mean)
+    X_test, _ = prepare_features(test_df, atm_means=ml_model.atm_means, global_mean=ml_model.global_mean)
     ridge.fit(X_train, y_train)
     ridge_preds = np.clip(ridge.predict(X_test), 0.0, None)
     ridge_mae = float(mean_absolute_error(y_true, ridge_preds))
@@ -287,7 +367,7 @@ def predict_single_atm(
             "month_name": d_val.strftime("%B"),
             "is_weekend": int(d_val.weekday() >= 5),
             "is_holiday": 0,
-            "season_name": "Summer" if d_val.month in (3,4,5,6) else ("Monsoon" if d_val.month in (7,8,9) else "Winter")
+            "season_name": get_season_for_month(d_val.month)
         }
     else:
         cal_dict = cal_row.iloc[0].to_dict()

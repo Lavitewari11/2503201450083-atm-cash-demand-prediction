@@ -9,7 +9,12 @@ import plotly.graph_objects as go
 
 from src.data_loader import load_atm_master, load_date_dim, load_daily_fact, load_forecast_fact
 from src.analysis import apply_filters, detect_demand_anomalies, compare_replenishment_vs_withdrawal
-from src.forecasting import evaluate_chronological_holdout, predict_single_atm_demand, predict_network_demand
+from src.forecasting import (
+    evaluate_chronological_holdout,
+    predict_single_atm_demand,
+    predict_network_demand,
+    CashDemandMLForecaster
+)
 from src.insights import generate_replenishment_insight
 from src.ui import (
     render_header, render_kpi_card, render_insight_box,
@@ -32,6 +37,27 @@ except Exception as exc:
     safe_page_link("app.py", label="Return to Home Hub", icon="🏠")
     st.stop()
 
+
+@st.cache_resource(show_spinner="Fitting forecasting model...")
+def get_cached_ml_model(data_fingerprint: str) -> CashDemandMLForecaster:
+    """
+    Fits and caches the Random Forest forecaster.
+    Invalidated automatically if the underlying fact data fingerprint changes.
+    """
+    return CashDemandMLForecaster().fit(facts_df)
+
+
+@st.cache_data(show_spinner="Evaluating holdout models...")
+def get_cached_holdout_eval(data_fingerprint: str):
+    """
+    Caches chronological holdout evaluation results.
+    Invalidated automatically if the underlying fact data fingerprint changes.
+    """
+    return evaluate_chronological_holdout(facts_df)
+
+
+data_fingerprint = f"{len(facts_df)}_{facts_df['withdrawal_amount_inr'].sum():.2f}_{facts_df['date_key'].max()}"
+cached_ml_model = get_cached_ml_model(data_fingerprint)
 
 filters = init_shared_filters(atms_df, calendar_df)
 filtered_df = apply_filters(
@@ -65,7 +91,7 @@ with tab_single:
         run_btn = st.button("Generate Forecast", type="primary", key="btn_run_single")
 
     with c2:
-        res = predict_single_atm_demand(atm_pick, fc_target_date, facts_df, atms_df, calendar_df)
+        res = predict_single_atm_demand(atm_pick, fc_target_date, facts_df, atms_df, calendar_df, trained_model=cached_ml_model)
         if res["status"] == "SUCCESS":
             render_kpi_card(
                 f"Estimated Demand ({res['day_of_week_name']}, {res['target_date']})",
@@ -80,7 +106,7 @@ with tab_single:
 with tab_net:
     st.subheader("Network-Wide Aggregate Cash Demand (OQ-10)")
     net_date = st.date_input("Forecast Date for Network:", value=date(2026, 1, 5), key="net_date_pick")
-    net_res = predict_network_demand(net_date, facts_df, atms_df, calendar_df)
+    net_res = predict_network_demand(net_date, facts_df, atms_df, calendar_df, trained_model=cached_ml_model)
 
     k1, k2, k3 = st.columns(3)
     with k1:
@@ -100,7 +126,7 @@ with tab_net:
 # 3. Model Evaluation
 with tab_eval:
     st.subheader("Chronological Holdout Model Evaluation (OQ-07, BR-07, KPI-05)")
-    eval_res = evaluate_chronological_holdout(facts_df)
+    eval_res = get_cached_holdout_eval(data_fingerprint)
     if "error" not in eval_res:
         st.caption(f"Training Window: `{eval_res['train_start_date']}` to `{eval_res['train_end_date']}` | Test Window: `{eval_res['test_start_date']}` to `{eval_res['test_end_date']}`. Zero data leakage.")
         st.dataframe(eval_res["comparison_table"], use_container_width=True)
