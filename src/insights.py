@@ -55,6 +55,11 @@ def generate_replenishment_insight(replenishment_summary: Dict[str, Any]) -> Dic
     else:
         finding = "Cash loading is broadly in equilibrium with historical cash withdrawals."
 
-    evidence = f"Replenished: {format_inr(replenished)} vs Withdrawn: {format_inr(withdrawn)} (Ratio: {ratio:.1f}%)."
+    net_diff = replenishment_summary.get("net_difference", replenished - withdrawn)
+    net_sign = "+" if net_diff > 0 else ""
+    evidence = (
+        f"Replenished: {format_inr(replenished)} vs Withdrawn: {format_inr(withdrawn)} "
+        f"| Net Cash Flow: {net_sign}{format_inr(net_diff)} (Ratio: {ratio:.1f}%)."
+    )
     caveat = "Directional indicator only; exact cash levels require opening/closing balance and transit timing reconciliations."
     return {"finding": finding, "evidence": evidence, "caveat": caveat}

@@ -181,13 +181,27 @@ with tab_replen:
     rep_insight = generate_replenishment_insight(rep_comp)
     render_insight_box(rep_insight["finding"], rep_insight["evidence"], rep_insight["caveat"])
 
+    net_diff = rep_comp["net_difference"]
+    net_sign = "+" if net_diff > 0 else ""
     r1, r2, r3 = st.columns(3)
     with r1:
-        render_kpi_card("Total Cash Replenished", format_inr(rep_comp["total_replenished"], compact=True), "Cash loaded into ATMs")
+        render_kpi_card(
+            "Total Cash Replenished",
+            format_inr(rep_comp["total_replenished"], compact=True),
+            f"Exact: {format_inr(rep_comp['total_replenished'])}"
+        )
     with r2:
-        render_kpi_card("Total Cash Withdrawn", format_inr(rep_comp["total_withdrawn"], compact=True), "Customer withdrawals")
+        render_kpi_card(
+            "Total Cash Withdrawn",
+            format_inr(rep_comp["total_withdrawn"], compact=True),
+            f"Exact: {format_inr(rep_comp['total_withdrawn'])}"
+        )
     with r3:
-        render_kpi_card("Net Cash Flow", format_inr(rep_comp["net_difference"], compact=True), f"Replenishment Ratio: {rep_comp['replenishment_ratio_pct']:.1f}%")
+        render_kpi_card(
+            "Net Cash Flow",
+            f"{net_sign}{format_inr(net_diff, compact=True)}",
+            f"Exact: {net_sign}{format_inr(net_diff)} | Ratio: {rep_comp['replenishment_ratio_pct']:.1f}%"
+        )
 
 render_bottom_nav(
     prev_page=("pages/4_EDA_Statistics.py", "4. EDA & Statistics", "🔬"),
